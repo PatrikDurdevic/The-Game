@@ -6,6 +6,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -27,6 +28,15 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        Spatial b = assetManager.loadModel("Models/template animations9/template animations9.j3o");
+        //Geometry geom = new Geometry("Spatial", b.g);
+        Material mat = new Material(assetManager,
+          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
+        mat.setColor("Color", ColorRGBA.White);   // set color of material to blue
+        b.setLocalScale(10, 10, 10);
+        b.setLocalTranslation(0, 100, 0);
+        b.setMaterial(mat);
+        rootNode.attachChild(b);
         flyCam.setMoveSpeed(100);
         
         Material mat_terrain = new Material(assetManager, 
