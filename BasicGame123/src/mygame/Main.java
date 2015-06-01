@@ -38,11 +38,11 @@ public class Main extends SimpleApplication {
         Material mat = new Material(assetManager,
           "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
         mat.setColor("Color", ColorRGBA.White);   // set color of material to blue
-        b.setLocalScale(100, 100, 100);
+        b.setLocalScale(10, 10, 10);
         b.setLocalTranslation(0, 0, 0);
         b.setMaterial(mat);
         rootNode.attachChild(b);
-        flyCam.setMoveSpeed(100);
+        flyCam.setMoveSpeed(500);
         
         Material mat_terrain = new Material(assetManager, 
             "Common/MatDefs/Terrain/Terrain.j3md");
@@ -108,18 +108,21 @@ public class Main extends SimpleApplication {
         //TODO: add update code
         Vector3f pos = b.getLocalTranslation();
         float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
-        b.setLocalTranslation(pos.x+1, y, pos.z);
-        
-        if (oldX != pos.x || oldY != pos.y || oldZ != pos.z) {
-            oldX = pos.x; oldY = pos.y; oldZ = pos.z;
-            Box box = new Box(1, 1, 1); // create cube shape
-            Geometry geom = new Geometry("Box", box);
-            Material mat = new Material(assetManager,
-              "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setColor("Color", ColorRGBA.Blue);
-            geom.setMaterial(mat);
-            rootNode.attachChild(geom);
-            geom.setLocalTranslation(new Vector3f(pos.x, pos.y, pos.z));
+        System.out.println(y);
+        if (!Float.isNaN(y)) {
+            b.setLocalTranslation(pos.x+1, y, pos.z);
+
+            if (oldX != pos.x || oldY != pos.y || oldZ != pos.z) {
+                oldX = pos.x; oldY = pos.y; oldZ = pos.z;
+                Box box = new Box(1, 1, 1); // create cube shape
+                Geometry geom = new Geometry("Box", box);
+                Material mat = new Material(assetManager,
+                  "Common/MatDefs/Misc/Unshaded.j3md");
+                mat.setColor("Color", ColorRGBA.Blue);
+                geom.setMaterial(mat);
+                rootNode.attachChild(geom);
+                geom.setLocalTranslation(new Vector3f(pos.x, pos.y, pos.z));
+            }
         }
     }
 
