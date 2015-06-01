@@ -3,6 +3,7 @@ package mygame;
 import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
@@ -21,6 +22,10 @@ import com.jme3.texture.Texture.WrapMode;
  */
 public class Main extends SimpleApplication {
 
+    private Spatial b;
+    private TerrainQuad terrain;
+    private float oldX, oldY, oldZ;
+    
     public static void main(String[] args) {
         Main app = new Main();
         app.start();
@@ -28,13 +33,13 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        Spatial b = assetManager.loadModel("Models/template animations9/template animations9.j3o");
+        b = assetManager.loadModel("Models/template animations9/template animations9.j3o");
         //Geometry geom = new Geometry("Spatial", b.g);
         Material mat = new Material(assetManager,
           "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
         mat.setColor("Color", ColorRGBA.White);   // set color of material to blue
-        b.setLocalScale(10, 10, 10);
-        b.setLocalTranslation(0, 100, 0);
+        b.setLocalScale(100, 100, 100);
+        b.setLocalTranslation(0, 0, 0);
         b.setMaterial(mat);
         rootNode.attachChild(b);
         flyCam.setMoveSpeed(100);
@@ -83,11 +88,11 @@ public class Main extends SimpleApplication {
      * 3.5) We supply the prepared heightmap itself.
      */
     int patchSize = 65;
-    TerrainQuad terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
+    terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
  
     /** 4. We give the terrain its material, position & scale it, and attach it. */
     terrain.setMaterial(mat_terrain);
-    terrain.setLocalTranslation(0, -100, 0);
+    terrain.setLocalTranslation(0, 0, 0);
     terrain.setLocalScale(2f, 1f, 2f);
     rootNode.attachChild(terrain);
  
@@ -101,6 +106,21 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         //TODO: add update code
+        Vector3f pos = b.getLocalTranslation();
+        float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
+        b.setLocalTranslation(pos.x+1, y, pos.z);
+        
+        if (oldX != pos.x || oldY != pos.y || oldZ != pos.z) {
+            oldX = pos.x; oldY = pos.y; oldZ = pos.z;
+            Box box = new Box(1, 1, 1); // create cube shape
+            Geometry geom = new Geometry("Box", box);
+            Material mat = new Material(assetManager,
+              "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setColor("Color", ColorRGBA.Blue);
+            geom.setMaterial(mat);
+            rootNode.attachChild(geom);
+            geom.setLocalTranslation(new Vector3f(pos.x, pos.y, pos.z));
+        }
     }
 
     @Override
