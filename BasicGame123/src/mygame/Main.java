@@ -18,6 +18,7 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import java.util.Random;
  
 /**
  * test
@@ -28,6 +29,7 @@ public class Main extends SimpleApplication {
     private Spatial b;
     private TerrainQuad terrain;
     private float oldX, oldY, oldZ;
+    private Geometry geom;
    
     public static void main(String[] args) {
         Main app = new Main();
@@ -95,7 +97,9 @@ public class Main extends SimpleApplication {
     TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
     terrain.addControl(control);
        
-       
+       initBox();
+       randomizeBoxPosition();
+       addBox();
     }
  
     @Override
@@ -104,6 +108,8 @@ public class Main extends SimpleApplication {
         Vector3f pos = b.getLocalTranslation();
         float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
         initKeys();
+        
+        movePlayerTowardsBox();
         /**System.out.println(y);
         if (!Float.isNaN(y)) {
             b.setLocalTranslation(pos.x+1, y, pos.z);
@@ -159,5 +165,71 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
+    }
+    
+    private void checkForPlayerWithBoxCollision() {
+        float x, y, z;
+        x = b.getLocalTranslation().x;
+        z = b.getLocalTranslation().z;
+        float x1, y1, z1;
+        x1 = geom.getLocalTranslation().x;
+        z1 = geom.getLocalTranslation().z;
+        if (Math.abs(x-x1) < 2 && Math.abs(z-z1) < 2) {
+            removeBox();
+            randomizeBoxPosition();
+            addBox();
+        }
+    }
+    
+    private void movePlayerTowardsBox() {
+        float x, y, z;
+        x = b.getLocalTranslation().x;
+        z = b.getLocalTranslation().z;
+        float x1, y1, z1;
+        x1 = geom.getLocalTranslation().x;
+        z1 = geom.getLocalTranslation().z;
+        y1 = geom.getLocalTranslation().y;
+        if (x1 > x) {
+            x += 1;
+        } else {
+            x -= 1;
+        }
+        
+        if (z1 > z) {
+            z += 1;
+        } else {
+            z -= 1;
+        }
+        
+        y = terrain.getHeight(new Vector2f(x, z));
+        b.setLocalTranslation(new Vector3f(x, y, z));
+        b.lookAt(new Vector3f(x1, y1, z1), Vector3f.ZERO);
+        checkForPlayerWithBoxCollision();
+    }
+    
+     private void initBox() {
+        Box b = new Box(1, 1, 1);
+        geom = new Geometry("Box", b);
+
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Blue);
+        geom.setMaterial(mat);
+    }
+    
+    private void randomizeBoxPosition() {
+        Random rand = new Random();
+        float x, y, z;
+        x = rand.nextInt(1028) - 514;
+        z = rand.nextInt(1028) - 514;
+        y = terrain.getHeight(new Vector2f(x, z));
+        geom.setLocalTranslation(new Vector3f(x, y, z));
+    }
+     
+    private void addBox() {
+        rootNode.attachChild(geom);
+    }
+    
+    private void removeBox() {
+        rootNode.detachChild(geom);
     }
 }
