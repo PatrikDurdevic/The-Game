@@ -26,7 +26,7 @@ public class Player extends Node {
     private Vector3f follow;
     private TerrainQuad terrain;
     private boolean atTarget; 
-   
+    
     
     public Player(AssetManager assetManager, TerrainQuad terrainTo) {
         terrain = terrainTo;
