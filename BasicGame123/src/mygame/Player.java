@@ -27,7 +27,6 @@ public class Player extends Node {
     private TerrainQuad terrain;
     private boolean atTarget; 
    
-    
     public Player(AssetManager assetManager, TerrainQuad terrainTo) {
         terrain = terrainTo;
         playerNode = assetManager.loadModel("Models/template animations9/template animations9.j3o");
