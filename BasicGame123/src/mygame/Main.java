@@ -1,6 +1,9 @@
 package mygame;
-
+ 
 import com.jme3.app.SimpleApplication;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.AnalogListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
@@ -15,22 +18,22 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
-
+ 
 /**
  * test
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
-
+ 
     private Spatial b;
     private TerrainQuad terrain;
     private float oldX, oldY, oldZ;
-    
+   
     public static void main(String[] args) {
         Main app = new Main();
         app.start();
     }
-
+ 
     @Override
     public void simpleInitApp() {
         b = assetManager.loadModel("Models/template animations9/template animations9.j3o");
@@ -43,8 +46,8 @@ public class Main extends SimpleApplication {
         b.setMaterial(mat);
         rootNode.attachChild(b);
         flyCam.setMoveSpeed(500);
-        
-        Material mat_terrain = new Material(assetManager, 
+       
+        Material mat_terrain = new Material(assetManager,
             "Common/MatDefs/Terrain/Terrain.j3md");
  
     /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
@@ -78,15 +81,7 @@ public class Main extends SimpleApplication {
             "Textures/mountains512.png");
     heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
     heightmap.load();
- 
-    /** 3. We have prepared material and heightmap. 
-     * Now we create the actual terrain:
-     * 3.1) Create a TerrainQuad and name it "my terrain".
-     * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
-     * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-     * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-     * 3.5) We supply the prepared heightmap itself.
-     */
+   
     int patchSize = 65;
     terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
  
@@ -99,19 +94,20 @@ public class Main extends SimpleApplication {
     /** 5. The LOD (level of detail) depends on were the camera is: */
     TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
     terrain.addControl(control);
-        
-        
+       
+       
     }
-
+ 
     @Override
     public void simpleUpdate(float tpf) {
         //TODO: add update code
         Vector3f pos = b.getLocalTranslation();
         float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
-        System.out.println(y);
+        initKeys();
+        /**System.out.println(y);
         if (!Float.isNaN(y)) {
             b.setLocalTranslation(pos.x+1, y, pos.z);
-
+ 
             if (oldX != pos.x || oldY != pos.y || oldZ != pos.z) {
                 oldX = pos.x; oldY = pos.y; oldZ = pos.z;
                 Box box = new Box(1, 1, 1); // create cube shape
@@ -123,9 +119,43 @@ public class Main extends SimpleApplication {
                 rootNode.attachChild(geom);
                 geom.setLocalTranslation(new Vector3f(pos.x, pos.y, pos.z));
             }
+        }*/
+    }
+   
+    private void initKeys() {
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_J));
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_L));
+        inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_I));
+        inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_K));
+       
+        inputManager.addListener(analogListener, "Left", "Right", "Forward", "Back");
+    }
+   
+    private AnalogListener analogListener = new AnalogListener() {
+    public void onAnalog(String name, float value, float tpf) {
+        Vector3f pos = b.getLocalTranslation();
+        float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
+        if (!Float.isNaN(y)) {
+            if (name.equals("Left")) {
+              b.setLocalTranslation(pos.x + 0.5f, y, pos.z);
+              b.lookAt(new Vector3f(pos.x + 1f, y, pos.z), new Vector3f(pos.x, y, pos.z));
+            }
+            if (name.equals("Right")) {
+              b.setLocalTranslation(pos.x - 0.5f, y, pos.z);
+              b.lookAt(new Vector3f(pos.x - 1f, y, pos.z), new Vector3f(pos.x, y, pos.z));
+            }
+            if (name.equals("Forward")) {
+              b.setLocalTranslation(pos.x, y, pos.z + 0.5f);
+              b.lookAt(new Vector3f(pos.x, y, pos.z + 1f), new Vector3f(pos.x, y, pos.z));
+            }
+            if (name.equals("Back")) {
+              b.setLocalTranslation(pos.x, y, pos.z - 0.5f);
+              b.lookAt(new Vector3f(pos.x, y, pos.z - 1f), new Vector3f(pos.x, y, pos.z));
+            }
         }
     }
-
+  };
+ 
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
