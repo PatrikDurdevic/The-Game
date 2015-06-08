@@ -10,6 +10,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
@@ -18,6 +19,8 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
  
 /**
@@ -26,10 +29,12 @@ import java.util.Random;
  */
 public class Main extends SimpleApplication {
  
-    private Spatial b;
+    private Player player;
     private TerrainQuad terrain;
     private float oldX, oldY, oldZ;
     private Geometry geom;
+    
+    private List<Player> players = new ArrayList();
    
     public static void main(String[] args) {
         Main app = new Main();
@@ -38,17 +43,8 @@ public class Main extends SimpleApplication {
  
     @Override
     public void simpleInitApp() {
-        b = assetManager.loadModel("Models/template animations9/template animations9.j3o");
-        //Geometry geom = new Geometry("Spatial", b.g);
-        Material mat = new Material(assetManager,
-          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
-        mat.setColor("Color", ColorRGBA.White);   // set color of material to blue
-        b.setLocalScale(10, 10, 10);
-        b.setLocalTranslation(0, 0, 0);
-        b.setMaterial(mat);
-        rootNode.attachChild(b);
         flyCam.setMoveSpeed(500);
-       
+        
         Material mat_terrain = new Material(assetManager,
             "Common/MatDefs/Terrain/Terrain.j3md");
  
@@ -96,20 +92,31 @@ public class Main extends SimpleApplication {
     /** 5. The LOD (level of detail) depends on were the camera is: */
     TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
     terrain.addControl(control);
-       
-       initBox();
-       randomizeBoxPosition();
-       addBox();
+        for (int i = 0; i < 10; i++) {
+            player = new Player(assetManager, terrain);
+            rootNode.attachChild(player);
+            players.add(player);
+        }
     }
  
     @Override
     public void simpleUpdate(float tpf) {
         //TODO: add update code
-        Vector3f pos = b.getLocalTranslation();
+        Vector3f pos = player.getLocalTranslation();
         float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
-        initKeys();
+        //initKeys();
         
-        movePlayerTowardsBox();
+        for (Player p : players) {
+            p.movePlayerTowardsBox();
+            if (p.needsNewLocation()) {
+                Random rnd = new Random();
+                float x1, y1, z1;
+                x1 = rnd.nextInt(1028) - 514;
+                z1 = rnd.nextInt(1028) - 514;
+                y1 = terrain.getHeight(new Vector2f(x1, z1));
+                p.setStaticTargetLocation(new Vector3f(x1, y1, z1));
+            }
+        }
         /**System.out.println(y);
         if (!Float.isNaN(y)) {
             b.setLocalTranslation(pos.x+1, y, pos.z);
@@ -139,7 +146,7 @@ public class Main extends SimpleApplication {
    
     private AnalogListener analogListener = new AnalogListener() {
     public void onAnalog(String name, float value, float tpf) {
-        Vector3f pos = b.getLocalTranslation();
+        /*Vector3f pos = b.getLocalTranslation();
         float y = terrain.getHeight(new Vector2f(pos.x, pos.z));
         if (!Float.isNaN(y)) {
             if (name.equals("Left")) {
@@ -158,7 +165,7 @@ public class Main extends SimpleApplication {
               b.setLocalTranslation(pos.x, y, pos.z - 0.5f);
               b.lookAt(new Vector3f(pos.x, y, pos.z - 1f), new Vector3f(pos.x, y, pos.z));
             }
-        }
+        }*/
     }
   };
  
@@ -167,69 +174,5 @@ public class Main extends SimpleApplication {
         //TODO: add render code
     }
     
-    private void checkForPlayerWithBoxCollision() {
-        float x, y, z;
-        x = b.getLocalTranslation().x;
-        z = b.getLocalTranslation().z;
-        float x1, y1, z1;
-        x1 = geom.getLocalTranslation().x;
-        z1 = geom.getLocalTranslation().z;
-        if (Math.abs(x-x1) < 2 && Math.abs(z-z1) < 2) {
-            removeBox();
-            randomizeBoxPosition();
-            addBox();
-        }
-    }
     
-    private void movePlayerTowardsBox() {
-        float x, y, z;
-        x = b.getLocalTranslation().x;
-        z = b.getLocalTranslation().z;
-        float x1, y1, z1;
-        x1 = geom.getLocalTranslation().x;
-        z1 = geom.getLocalTranslation().z;
-        y1 = geom.getLocalTranslation().y;
-        if (x1 > x) {
-            x += 1;
-        } else {
-            x -= 1;
-        }
-        
-        if (z1 > z) {
-            z += 1;
-        } else {
-            z -= 1;
-        }
-        
-        y = terrain.getHeight(new Vector2f(x, z));
-        b.setLocalTranslation(new Vector3f(x, y, z));
-        b.lookAt(new Vector3f(x1, y1, z1), Vector3f.ZERO);
-        checkForPlayerWithBoxCollision();
-    }
-    
-     private void initBox() {
-        Box b = new Box(1, 1, 1);
-        geom = new Geometry("Box", b);
-
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Blue);
-        geom.setMaterial(mat);
-    }
-    
-    private void randomizeBoxPosition() {
-        Random rand = new Random();
-        float x, y, z;
-        x = rand.nextInt(1028) - 514;
-        z = rand.nextInt(1028) - 514;
-        y = terrain.getHeight(new Vector2f(x, z));
-        geom.setLocalTranslation(new Vector3f(x, y, z));
-    }
-     
-    private void addBox() {
-        rootNode.attachChild(geom);
-    }
-    
-    private void removeBox() {
-        rootNode.detachChild(geom);
-    }
 }
