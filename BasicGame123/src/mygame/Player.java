@@ -76,6 +76,7 @@ public class Player extends Node {
         this.attachChild(projectile);
     }
     
+    
     public void movePlayerTowardsTarger() {
         if (!atTarget) {
         float x, y, z;

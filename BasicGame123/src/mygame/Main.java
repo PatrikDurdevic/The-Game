@@ -98,6 +98,7 @@ public class Main extends SimpleApplication {
             players.add(player);
         }
     }
+    
  
     @Override
     public void simpleUpdate(float tpf) {
