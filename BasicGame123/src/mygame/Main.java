@@ -92,7 +92,7 @@ public class Main extends SimpleApplication {
     /** 5. The LOD (level of detail) depends on were the camera is: */
     TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
     terrain.addControl(control);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             player = new Player(assetManager, terrain);
             rootNode.attachChild(player);
             players.add(player);
@@ -107,7 +107,8 @@ public class Main extends SimpleApplication {
         //initKeys();
         
         for (Player p : players) {
-            p.movePlayerTowardsBox();
+            p.movePlayerTowardsTarger();
+            p.moveProjectileTowardsTarget();
             if (p.needsNewLocation()) {
                 Random rnd = new Random();
                 float x1, y1, z1;
