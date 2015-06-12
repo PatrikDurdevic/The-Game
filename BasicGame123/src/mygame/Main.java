@@ -5,14 +5,10 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
@@ -30,11 +26,13 @@ import java.util.Random;
 public class Main extends SimpleApplication {
  
     private Player player;
+    private Hunter hunter;
     private TerrainQuad terrain;
     private float oldX, oldY, oldZ;
     private Geometry geom;
     
     private List<Player> players = new ArrayList();
+    private List<Hunter> hunters = new ArrayList();
    
     public static void main(String[] args) {
         Main app = new Main();
@@ -74,7 +72,7 @@ public class Main extends SimpleApplication {
     mat_terrain.setFloat("Tex3Scale", 128f);
  
     /** 2. Create the height map */
-    AbstractHeightMap heightmap = null;
+    AbstractHeightMap heightmap;
     Texture heightMapImage = assetManager.loadTexture(
             "Textures/mountains512.png");
     heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
@@ -92,10 +90,15 @@ public class Main extends SimpleApplication {
     /** 5. The LOD (level of detail) depends on were the camera is: */
     TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
     terrain.addControl(control);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 20; i++) {
             player = new Player(assetManager, terrain);
             rootNode.attachChild(player);
             players.add(player);
+        }
+        for (int i = 0; i < 1; i++) {
+            hunter = new Hunter(assetManager, terrain);
+            rootNode.attachChild(hunter);
+            hunters.add(hunter);
         }
     }
     
@@ -119,22 +122,32 @@ public class Main extends SimpleApplication {
                 p.setStaticTargetLocation(new Vector3f(x1, y1, z1));
             }
         }
-        /**System.out.println(y);
-        if (!Float.isNaN(y)) {
-            b.setLocalTranslation(pos.x+1, y, pos.z);
- 
-            if (oldX != pos.x || oldY != pos.y || oldZ != pos.z) {
-                oldX = pos.x; oldY = pos.y; oldZ = pos.z;
-                Box box = new Box(1, 1, 1); // create cube shape
-                Geometry geom = new Geometry("Box", box);
-                Material mat = new Material(assetManager,
-                  "Common/MatDefs/Misc/Unshaded.j3md");
-                mat.setColor("Color", ColorRGBA.Blue);
-                geom.setMaterial(mat);
-                rootNode.attachChild(geom);
-                geom.setLocalTranslation(new Vector3f(pos.x, pos.y, pos.z));
+        for (Hunter h : hunters) {
+            if (players.isEmpty()) { break; }
+            h.movePlayerTowardsTarger();
+            int oldIt = h.getTargetIterator();
+            if (h.needsNewLocation()) {
+                if (oldIt >= 0) {
+                    rootNode.detachChild(players.get(oldIt));
+                    players.remove(oldIt);
+                }
+                Random rnd = new Random();
+                int size = players.size();
+                if (players.isEmpty()) break;
+                int it = rnd.nextInt(size);
+                float x1, y1, z1;
+                x1 = players.get(it).getPlayerLocalTranslation().x;
+                z1 = players.get(it).getPlayerLocalTranslation().y;
+                y1 = terrain.getHeight(new Vector2f(x1, z1));
+                h.setStaticTargetLocation(new Vector3f(x1, y1, z1), it);
+            } else {
+                float x1, y1, z1;
+                x1 = players.get(oldIt).getPlayerLocalTranslation().x;
+                z1 = players.get(oldIt).getPlayerLocalTranslation().y;
+                y1 = terrain.getHeight(new Vector2f(x1, z1));
+                h.setStaticTargetLocation(new Vector3f(x1, y1, z1), oldIt);
             }
-        }*/
+        }
     }
    
     private void initKeys() {

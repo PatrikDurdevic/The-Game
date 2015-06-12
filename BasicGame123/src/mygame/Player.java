@@ -76,6 +76,11 @@ public class Player extends Node {
         this.attachChild(projectile);
     }
     
+    public Vector2f getPlayerLocalTranslation() {
+        
+        return new Vector2f(playerNode.getLocalTranslation().x,playerNode.getLocalTranslation().z);
+    }
+    
     
     public void movePlayerTowardsTarger() {
         if (!atTarget) {
